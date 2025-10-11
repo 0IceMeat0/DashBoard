@@ -1,0 +1,134 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--background, #fff);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 320px;
+  min-height: 115px;
+  font-family: "Roboto", sans-serif;
+}
+
+.pair {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary-color, #4caf50);
+  margin: 0;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.price {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--foreground, #222);
+  line-height: 1;
+}
+
+.change {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.positive {
+  color: var(--primary-color, #4caf50);
+}
+
+.negative {
+  color: var(--error-color, #f44336);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+  margin-top: 4px;
+}
+
+.exchange {
+  color: var(--primary-color, #4caf50);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.timestamp {
+  color: var(--text-muted, #757575);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--foreground, #222);
+  font-size: 16px;
+  padding: 20px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid var(--warning-color, #ffc536);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  color: var(--foreground, #222);
+  text-align: center;
+  padding: 20px;
+}
+
+.errorDetail {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+  margin-top: 8px;
+}
+
+// Адаптивность для мобильных устройств
+@media (max-width: 767px) {
+  .container {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .price {
+    font-size: 24px;
+  }
+
+  .change {
+    font-size: 18px;
+  }
+
+  .pair {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 405px) {
+  .container {
+    width: 95%;
+    padding: 12px;
+  }
+}

@@ -1,0 +1,76 @@
+.wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #1b2228;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+  font-family: "Roboto", sans-serif;
+  height: 20dvh;
+}
+
+.typeCrypto {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.logo {
+  display: flex;
+  position: absolute;
+  top: 25px;
+  right: 25px;
+}
+
+.logoAlt {
+  display: flex;
+  justify-items: flex-end;
+  height: 40px;
+  width: auto;
+  margin-right: 25px;
+}
+.bybit {
+  height: 35px;
+  width: auto;
+  padding-bottom: 5px;
+}
+
+// Адаптивность
+@media (max-width: 729px) {
+  .wrap {
+    flex-direction: row;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .typeCrypto {
+    width: 60%;
+  }
+
+  .logo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    position: absolute;
+    right: 10px;
+    margin-right: 0;
+  }
+
+  .logoAlt {
+    height: 25px;
+    margin-right: 0;
+  }
+  .bybit {
+    height: 30px;
+  }
+}
+
+@media (max-width: 405px) {
+  .logoAlt {
+    height: 18px;
+  }
+  .bybit {
+    height: 20px;
+  }
+}
