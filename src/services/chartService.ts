@@ -73,14 +73,12 @@ export class ChartService {
         limit: timeConfig.limit,
       };
 
-      console.log("Запрос исторических данных:", { symbol, params });
-
       const response = await axios.get(url, { params });
       const klines = response.data;
 
-      const chartData: ChartDataPoint[] = klines.map((kline: any[]) => {
+      const chartData: ChartDataPoint[] = klines.map((kline: (string | number)[]) => {
         const timestamp = kline[0];
-        const price = parseFloat(kline[4]); // Цена закрытия
+        const price = parseFloat(String(kline[4])); // Цена закрытия
         const date = new Date(timestamp);
 
         return {

@@ -63,7 +63,7 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
     }
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: { payload: { price: number; timestamp: number } }[] }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (

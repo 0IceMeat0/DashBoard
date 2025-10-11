@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { CryptoService, CryptoPrice } from "../services/cryptoService";
 
 interface UseCryptoPriceProps {
@@ -18,21 +18,16 @@ export const useCryptoPrice = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPrice = async () => {
+  const fetchPrice = useCallback(async () => {
     try {
-      console.log("Начинаем загрузку данных для:", { crypto, currency });
       setLoading(true);
       setError(null);
       const result = await CryptoService.getCryptoPrice(crypto, currency);
 
-      console.log("Результат запроса:", result);
-
       if (result) {
         setData(result);
-        console.log("Данные установлены в состояние");
       } else {
         setError("Не удалось получить данные о курсе");
-        console.log("Ошибка: результат null");
       }
     } catch (err) {
       console.error("Ошибка в fetchPrice:", err);
@@ -40,7 +35,7 @@ export const useCryptoPrice = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [crypto, currency]);
 
   useEffect(() => {
     fetchPrice();
@@ -49,7 +44,7 @@ export const useCryptoPrice = ({
       const interval = setInterval(fetchPrice, refreshInterval);
       return () => clearInterval(interval);
     }
-  }, [crypto, currency, autoRefresh, refreshInterval]);
+  }, [crypto, currency, autoRefresh, refreshInterval, fetchPrice]);
 
   return {
     data,

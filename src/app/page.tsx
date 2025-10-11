@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import styles from "./page.module.css";
 import { CryptoChart } from "../components/CryptoChart";
 
@@ -17,7 +18,9 @@ function ChartContent() {
 export default function Home() {
   return (
     <div className={styles.page}>
-      <ChartContent />
+      <Suspense fallback={<div>Загрузка...</div>}>
+        <ChartContent />
+      </Suspense>
     </div>
   );
 }

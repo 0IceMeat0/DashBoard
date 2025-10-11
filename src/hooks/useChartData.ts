@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ChartService, ChartDataPoint } from "../services/chartService";
 
 interface UseChartDataProps {
@@ -20,7 +20,7 @@ export const useChartData = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -42,7 +42,7 @@ export const useChartData = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [crypto, currency, period]);
 
   useEffect(() => {
     fetchData();
@@ -51,7 +51,7 @@ export const useChartData = ({
       const interval = setInterval(fetchData, refreshInterval);
       return () => clearInterval(interval);
     }
-  }, [crypto, currency, period, autoRefresh, refreshInterval]);
+  }, [crypto, currency, period, autoRefresh, refreshInterval, fetchData]);
 
   return {
     data,
