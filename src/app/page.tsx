@@ -18,7 +18,7 @@ function ChartContent() {
 export default function Home() {
   return (
     <div className={styles.page}>
-      <Suspense fallback={<div>Загрузка...</div>}>
+      <Suspense>
         <ChartContent />
       </Suspense>
     </div>

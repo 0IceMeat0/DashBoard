@@ -63,7 +63,13 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
     }
   };
 
-  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: { payload: { price: number; timestamp: number } }[] }) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: { payload: { price: number; timestamp: number } }[];
+  }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
@@ -87,7 +93,7 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
       <div className={styles.containerLoader}>
         <div className={styles.loading}>
           <div className={styles.spinner}></div>
-          Загрузка графика...
+          Загружаем данные...
         </div>
       </div>
     );

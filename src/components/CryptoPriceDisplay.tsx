@@ -19,7 +19,6 @@ export const CryptoPriceDisplay = ({
       <div className={styles.container}>
         <div className={styles.loading}>
           <div className={styles.spinner}></div>
-          Загрузка...
         </div>
       </div>
     );
