@@ -24,13 +24,9 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
   const [selectedPeriod, setSelectedPeriod] = useState("1y");
   const [isMobile, setIsMobile] = useState(false);
 
-  // Проверяем ширину экрана для отключения оси Y на мобилках
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 767);
-    };
-
-    handleResize(); // сразу при монтировании
+    const handleResize = () => setIsMobile(window.innerWidth < 767);
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -41,32 +37,49 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
     period: selectedPeriod,
   });
 
-  const periods = ChartService.getSupportedPeriods();
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("ru-RU", {
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("ru-RU", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(price);
+
+  const formatTooltipDate = (ts: number) => {
+    const date = new Date(ts);
+    return selectedPeriod === "1d"
+      ? date.toLocaleString("ru-RU", {
+          day: "numeric",
+          month: "long",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : date.toLocaleDateString("ru-RU", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
   };
 
-  const formatTooltipDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-
-    if (selectedPeriod === "1d") {
-      return date.toLocaleString("ru-RU", {
-        day: "numeric",
-        month: "long",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } else {
-      return date.toLocaleDateString("ru-RU", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
-    }
+  // кастомный тик для мобилы — сдвигаем надписи по X
+  const MobileXAxisTick = (props: {
+    x: number;
+    y: number;
+    payload: { value: number };
+  }) => {
+    const { x, y, payload } = props;
+    const shift = -14; // сдвиг влево; при желании измени на -10/-20
+    return (
+      <text
+        x={x + shift}
+        y={y + 12}
+        fill="var(--foreground, #222)"
+        fontSize={12}
+        fontWeight={700}
+        fontFamily="'Roboto', sans-serif"
+        textAnchor="middle"
+      >
+        {payload.value}
+      </text>
+    );
   };
 
   const CustomTooltip = ({
@@ -74,19 +87,28 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
     payload,
   }: {
     active?: boolean;
-    payload?: { payload: { price: number; timestamp: number } }[];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    payload?: { payload: any }[];
   }) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload;
+      const p = payload[0].payload;
+      const price = p.price as number;
+      const pct = p.priceDeltaPct as number;
+
       return (
         <div className={styles.tooltip}>
           <div className={styles.tooltipHeader}>
             {crypto.toUpperCase()}/
             {currency === "usd" ? "USDT" : currency.toUpperCase()} :{" "}
-            {formatPrice(data.price)}
+            {formatPrice(price)}{" "}
+            <span className={pct >= 0 ? styles.up : styles.down}>
+              ({pct >= 0 ? "+" : ""}
+              {pct.toFixed(2)}%)
+            </span>
           </div>
           <div className={styles.tooltipDate}>
-            {formatTooltipDate(data.timestamp)}
+            {formatTooltipDate(p.timestamp)}
           </div>
         </div>
       );
@@ -98,12 +120,11 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
     return (
       <div className={styles.containerLoader}>
         <div className={styles.loading}>
-          <div className={styles.spinner}></div>
+          <div className={styles.spinner} />
         </div>
       </div>
     );
   }
-
   if (error) {
     return (
       <div className={styles.container}>
@@ -111,7 +132,6 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
       </div>
     );
   }
-
   if (!data || data.length === 0) {
     return (
       <div className={styles.container}>
@@ -120,31 +140,52 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
     );
   }
 
-  // === ЦЕНОВОЙ ДИАПАЗОН ===
+  // === подготовка данных и доменов ===
   const prices = data.map((d) => d.price);
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
+  const meanPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
   const priceRange = maxPrice - minPrice;
-  const padding = priceRange * 0.1;
 
-  // Определяем шаг округления
+  const volatility = meanPrice ? priceRange / meanPrice : 0;
+  const isFlatSmallRange = volatility < 0.012 || selectedPeriod === "1d";
+
+  // Δ% считаем ВСЕГДА — чтобы тултип всегда показывал процент
+  const firstPrice = prices[0];
+  const dataAugmented = data.map((d) => ({
+    ...d,
+    priceDeltaPct: firstPrice ? (d.price / firstPrice - 1) * 100 : 0,
+  }));
+
+  // домены для абсолютов
+  const paddingBase = priceRange * (isFlatSmallRange ? 0.25 : 0.1);
   const getDynamicStep = (range: number) => {
     if (range > 10000) return 1000;
     if (range > 5000) return 500;
     if (range > 1000) return 100;
-    return 50;
+    if (range > 200) return 50;
+    return 10;
+    // под свои активы можно подкрутить
   };
-
   const step = getDynamicStep(priceRange);
+  const roundDown = (num: number, s: number) => Math.floor(num / s) * s;
+  const roundUp = (num: number, s: number) => Math.ceil(num / s) * s;
 
-  const roundDown = (num: number, step: number) =>
-    Math.floor(num / step) * step;
-  const roundUp = (num: number, step: number) => Math.ceil(num / step) * step;
+  const roundedMin = roundDown(minPrice - paddingBase, step);
+  const roundedMax = roundUp(maxPrice + paddingBase, step);
 
-  const roundedMin = roundDown(minPrice - padding, step);
-  const roundedMax = roundUp(maxPrice + padding, step);
+  // домены для процентов
+  const pctValues = dataAugmented.map((d) => d.priceDeltaPct);
+  const pctMin = Math.min(...pctValues);
+  const pctMax = Math.max(...pctValues);
+  const pctRange = pctMax - pctMin || 1;
+  const pctPadding = Math.max(0.2, pctRange * 0.2);
+  const roundedPctMin = Math.floor((pctMin - pctPadding) * 10) / 10;
+  const roundedPctMax = Math.ceil((pctMax + pctPadding) * 10) / 10;
 
-  // === РЕНДЕР ===
+  const lineWidth = isMobile ? 3 : isFlatSmallRange ? 3 : 2;
+  const gridColor = "#eee";
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -153,7 +194,7 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
         </div>
 
         <div className={styles.periods}>
-          {periods.map((period) => (
+          {ChartService.getSupportedPeriods().map((period) => (
             <button
               key={period}
               className={`${styles.periodButton} ${
@@ -170,33 +211,55 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
       <div className={styles.chartContainer}>
         <ResponsiveContainer width="100%" height={400}>
           <LineChart
-            data={data}
+            data={dataAugmented}
             margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
 
             <XAxis
               dataKey="formattedDate"
               stroke="var(--foreground, #222)"
-              fontSize={12}
-              fontWeight="700"
-              fontFamily="'Roboto', sans-serif"
               tickLine={false}
               axisLine={false}
+              // на мобиле используем кастомный тик со сдвигом
+              tick={
+                isMobile ? (
+                  <MobileXAxisTick
+                    x={0}
+                    y={0}
+                    payload={{
+                      value: 0,
+                    }}
+                  />
+                ) : (
+                  {
+                    fontSize: 12,
+                    fontWeight: 700,
+                    fontFamily: "'Roboto', sans-serif",
+                  }
+                )
+              }
             />
 
-            {/* 👇 Скрываем ось Y на мобильных устройствах */}
+            {/* Y ось как раньше: скрываем на мобиле */}
             {!isMobile && (
               <YAxis
-                domain={[roundedMin, roundedMax]}
-                tickFormatter={formatPrice}
+                domain={
+                  isFlatSmallRange
+                    ? [roundedPctMin, roundedPctMax]
+                    : [roundedMin, roundedMax]
+                }
+                tickFormatter={(v: number) =>
+                  isFlatSmallRange ? `${v.toFixed(1)}%` : formatPrice(v)
+                }
                 stroke="var(--foreground, #222)"
                 fontSize={12}
                 fontWeight="700"
                 fontFamily="'Roboto', sans-serif"
                 tickLine={false}
                 axisLine={false}
-                className={styles.moneyY}
+                allowDecimals
+                tickCount={6}
               />
             )}
 
@@ -207,14 +270,13 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
                 strokeWidth: 1,
                 strokeDasharray: "3 3",
               }}
-              position={{ x: undefined, y: undefined }}
             />
 
             <Line
               type="monotone"
-              dataKey="price"
+              dataKey={isFlatSmallRange ? "priceDeltaPct" : "price"}
               stroke="#ffc536"
-              strokeWidth={2}
+              strokeWidth={lineWidth}
               dot={false}
               activeDot={{ r: 4, fill: "#ffc536" }}
             />
@@ -222,6 +284,7 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
         </ResponsiveContainer>
       </div>
 
+      {/* нижний диапазон — всегда в абсолютных ценах */}
       <div className={styles.priceRange}>
         <div className={styles.priceMin}>Мин: {formatPrice(minPrice)}</div>
         <div className={styles.priceMax}>Макс: {formatPrice(maxPrice)}</div>

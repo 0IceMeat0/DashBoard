@@ -215,6 +215,7 @@ export class CryptoService {
 
     // вернём только те, что у нас маппятся из входа
     const whitelist = new Set(Object.values(CURRENCY_MAP));
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const usable = Array.from(quotes).filter((q) => whitelist.has(q));
     // бонус: добавим алиасы входа (usd, usdt, eur, rub, rur)
     return ["USDT", "EUR", "RUB"];
