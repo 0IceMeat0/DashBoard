@@ -4,21 +4,31 @@
   justify-content: center;
   gap: 8px;
   padding: 16px;
-  background: var(--background, #fff);
+
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  min-width: 320px;
+
+  min-width: 280px;
   min-height: 115px;
   font-family: "Roboto", sans-serif;
 }
 
 .pair {
-  font-size: 16px;
+  font-size: 34px;
+  line-height: 34px;
   font-weight: 600;
-  color: var(--primary-color, #4caf50);
+  color: #1b8;
   margin: 0;
-}
 
+  &:hover {
+    opacity: 70%;
+  }
+}
+.bybit {
+  color: #1b8;
+  &:hover {
+    opacity: 70%;
+  }
+}
 .priceRow {
   display: flex;
   align-items: baseline;
@@ -40,7 +50,7 @@
 }
 
 .positive {
-  color: var(--primary-color, #4caf50);
+  color: #1b8;
 }
 
 .negative {
@@ -53,7 +63,6 @@
   align-items: center;
   font-size: 12px;
   color: var(--text-secondary, #666);
-  margin-top: 4px;
 }
 
 .exchange {

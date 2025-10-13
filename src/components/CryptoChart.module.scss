@@ -13,8 +13,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(5px);
+
   z-index: 9999;
   font-family: "Roboto", sans-serif;
 }
@@ -22,14 +21,12 @@
   flex: 1;
   display: flex;
   justify-content: flex-start;
+  margin: 20px;
 }
 .header {
-  padding: 20px;
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: flex-end;
-
-  background-color: #1b2228;
 }
 
 .title {
@@ -41,29 +38,33 @@
 .periods {
   display: flex;
   gap: 8px;
+
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
 }
 
 .periodButton {
   padding: 8px 16px;
-  border: 1px solid var(--border-color, #e0e0e0);
-  background: var(--background, #fff);
-  color: var(--text-secondary, #666);
-  border-radius: 6px;
+  border: 1px solid white;
+
+  color: #222;
+  background-color: white;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: "Roboto", sans-serif;
 
+  &:first-of-type {
+    margin-left: 20px;
+  }
   &:hover {
-    border-color: var(--warning-color, #ffc536);
-    color: var(--foreground, #222);
+    color: #11bb88; // эквивалент #1b8, но читаемее
   }
 
   &.active {
-    background: var(--warning-color, #ffc536);
-    border-color: var(--warning-color, #ffc536);
-    color: var(--background, #fff);
+    border-top: 1px solid #11bb88;
+    color: #11bb88;
   }
 }
 
@@ -78,16 +79,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  color: #ffffff;
   font-size: 18px;
   font-weight: 500;
   padding: 40px;
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .spinner {
@@ -115,7 +112,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -303,6 +301,7 @@
     align-items: center;
     justify-content: center;
     margin-top: 3px;
+    right: 10px;
   }
   .logoAlt {
     height: 20px;
@@ -311,16 +310,29 @@
     height: 20px;
     padding-bottom: 0;
   }
+  .moneyY {
+    display: none;
+  }
+  .chartContainer {
+    width: 103%;
+    position: relative;
+  }
 }
 
 // Адаптивность для loader
 @media (max-width: 768px) {
+  .typeCrypto {
+    margin: 0px;
+  }
+  .container {
+    margin: 0;
+  }
   .loading {
     padding: 30px;
     font-size: 16px;
     gap: 15px;
   }
-  
+
   .spinner {
     width: 40px;
     height: 40px;
@@ -329,13 +341,17 @@
 }
 
 @media (max-width: 480px) {
+  .priceRange {
+    max-width: 100%;
+  }
+
   .loading {
     padding: 20px;
     font-size: 14px;
     gap: 12px;
     margin: 20px;
   }
-  
+
   .spinner {
     width: 35px;
     height: 35px;

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCryptoPrice } from "../hooks/useCryptoPrice";
 import styles from "./CryptoPriceDisplay.module.scss";
 
@@ -67,9 +68,12 @@ export const CryptoPriceDisplay = ({
 
   return (
     <div className={styles.container}>
-      <div className={styles.pair}>
+      <Link
+        href="https://www.bybit.com/invite?ref=22Q9WZ"
+        className={styles.pair}
+      >
         {data.symbol}/{currency === "usd" ? "USDT" : currency.toUpperCase()}
-      </div>
+      </Link>
       <div className={styles.priceRow}>
         <span className={styles.price}>{formattedPrice}</span>
         <span className={`${styles.change} ${changeColor}`}>
@@ -77,7 +81,15 @@ export const CryptoPriceDisplay = ({
         </span>
       </div>
       <div className={styles.footer}>
-        <span className={styles.timestamp}>{lastUpdated}</span>
+        <span className={styles.timestamp}>
+          <Link
+            href="https://www.bybit.com/invite?ref=22Q9WZ"
+            className={styles.bybit}
+          >
+            bybit{" "}
+          </Link>
+          {lastUpdated}
+        </span>
       </div>
     </div>
   );

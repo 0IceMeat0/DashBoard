@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -14,10 +14,6 @@ import { useChartData } from "../hooks/useChartData";
 import { ChartService } from "../services/chartService";
 import styles from "./CryptoChart.module.scss";
 import { CryptoPriceDisplay } from "./CryptoPriceDisplay";
-import Image from "next/image";
-import logo from "./assets/alt.png";
-import bybit from "./assets/bybit.svg";
-import Link from "next/link";
 
 interface CryptoChartProps {
   crypto: string;
@@ -26,6 +22,19 @@ interface CryptoChartProps {
 
 export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
   const [selectedPeriod, setSelectedPeriod] = useState("1y");
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Проверяем ширину экрана для отключения оси Y на мобилках
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 767);
+    };
+
+    handleResize(); // сразу при монтировании
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const { data, loading, error } = useChartData({
     crypto,
     currency,
@@ -44,9 +53,7 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
   const formatTooltipDate = (timestamp: number) => {
     const date = new Date(timestamp);
 
-    // Форматируем дату в зависимости от выбранного периода
     if (selectedPeriod === "1d") {
-      // Для дня показываем время
       return date.toLocaleString("ru-RU", {
         day: "numeric",
         month: "long",
@@ -54,7 +61,6 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
         minute: "2-digit",
       });
     } else {
-      // Для остальных периодов показываем дату
       return date.toLocaleDateString("ru-RU", {
         day: "numeric",
         month: "long",
@@ -93,7 +99,6 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
       <div className={styles.containerLoader}>
         <div className={styles.loading}>
           <div className={styles.spinner}></div>
-          Загружаем данные...
         </div>
       </div>
     );
@@ -115,28 +120,39 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
     );
   }
 
-  // Получаем минимальную и максимальную цены для настройки осей
+  // === ЦЕНОВОЙ ДИАПАЗОН ===
   const prices = data.map((d) => d.price);
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
   const priceRange = maxPrice - minPrice;
-  const padding = priceRange * 0.1; // 10% отступ
+  const padding = priceRange * 0.1;
 
+  // Определяем шаг округления
+  const getDynamicStep = (range: number) => {
+    if (range > 10000) return 1000;
+    if (range > 5000) return 500;
+    if (range > 1000) return 100;
+    return 50;
+  };
+
+  const step = getDynamicStep(priceRange);
+
+  const roundDown = (num: number, step: number) =>
+    Math.floor(num / step) * step;
+  const roundUp = (num: number, step: number) => Math.ceil(num / step) * step;
+
+  const roundedMin = roundDown(minPrice - padding, step);
+  const roundedMax = roundUp(maxPrice + padding, step);
+
+  // === РЕНДЕР ===
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.typeCrypto}>
           <CryptoPriceDisplay crypto={crypto} currency={currency} />
         </div>
+
         <div className={styles.periods}>
-          <div className={styles.logo}>
-            <Link href="https://altcoinlog.com/?utm_source=dashboard">
-              <Image className={styles.logoAlt} src={logo} alt="AltCoinLog" />
-            </Link>
-            <Link href="https://www.bybit.com/en/">
-              <Image className={styles.bybit} src={bybit} alt="Bybit" />
-            </Link>
-          </div>
           {periods.map((period) => (
             <button
               key={period}
@@ -158,6 +174,7 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
             margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+
             <XAxis
               dataKey="formattedDate"
               stroke="var(--foreground, #222)"
@@ -167,16 +184,22 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
               tickLine={false}
               axisLine={false}
             />
-            <YAxis
-              domain={[minPrice - padding, maxPrice + padding]}
-              tickFormatter={formatPrice}
-              stroke="var(--foreground, #222)"
-              fontSize={12}
-              fontWeight="700"
-              fontFamily="'Roboto', sans-serif"
-              tickLine={false}
-              axisLine={false}
-            />
+
+            {/* 👇 Скрываем ось Y на мобильных устройствах */}
+            {!isMobile && (
+              <YAxis
+                domain={[roundedMin, roundedMax]}
+                tickFormatter={formatPrice}
+                stroke="var(--foreground, #222)"
+                fontSize={12}
+                fontWeight="700"
+                fontFamily="'Roboto', sans-serif"
+                tickLine={false}
+                axisLine={false}
+                className={styles.moneyY}
+              />
+            )}
+
             <Tooltip
               content={<CustomTooltip />}
               cursor={{
@@ -186,6 +209,7 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
               }}
               position={{ x: undefined, y: undefined }}
             />
+
             <Line
               type="monotone"
               dataKey="price"
