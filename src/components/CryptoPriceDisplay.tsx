@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCryptoPrice } from "../hooks/useCryptoPrice";
 import styles from "./CryptoPriceDisplay.module.scss";
 
@@ -14,6 +13,13 @@ export const CryptoPriceDisplay = ({
   currency,
 }: CryptoPriceDisplayProps) => {
   const { data, loading, error } = useCryptoPrice({ crypto, currency });
+
+  const handleExternalClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const url = (e.currentTarget as HTMLAnchorElement).href;
+    // открываем в новой вкладке, не даем доступ к window.opener
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
 
   if (loading) {
     return (
@@ -41,6 +47,7 @@ export const CryptoPriceDisplay = ({
 
   const isPositive = data.price_change_24h > 0;
   const changeColor = isPositive ? styles.positive : styles.negative;
+
   const formattedPrice = new Intl.NumberFormat("ru-RU", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -66,28 +73,38 @@ export const CryptoPriceDisplay = ({
     second: "2-digit",
   });
 
+  const quoteLabel = currency === "usd" ? "USDT" : currency.toUpperCase();
+
   return (
     <div className={styles.container}>
-      <Link
+      <a
         href="https://www.bybit.com/invite?ref=22Q9WZ"
         className={styles.pair}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={handleExternalClick}
       >
-        {data.symbol}/{currency === "usd" ? "USDT" : currency.toUpperCase()}
-      </Link>
+        {data.symbol}/{quoteLabel}
+      </a>
+
       <div className={styles.priceRow}>
         <span className={styles.price}>{formattedPrice}</span>
         <span className={`${styles.change} ${changeColor}`}>
           {formattedChange} ({formattedChangePercent}%)
         </span>
       </div>
+
       <div className={styles.footer}>
         <span className={styles.timestamp}>
-          <Link
+          <a
             href="https://www.bybit.com/invite?ref=22Q9WZ"
             className={styles.bybit}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={handleExternalClick}
           >
             bybit{" "}
-          </Link>
+          </a>
           {lastUpdated}
         </span>
       </div>
