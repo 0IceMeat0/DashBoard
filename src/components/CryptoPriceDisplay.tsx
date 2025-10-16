@@ -103,7 +103,7 @@ export const CryptoPriceDisplay = ({
             rel="noopener noreferrer"
             onClick={handleExternalClick}
           >
-            bybit{" "}
+            BYBIT{" "}
           </a>
           {lastUpdated}
         </span>

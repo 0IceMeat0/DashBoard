@@ -25,7 +25,7 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 767);
+    const handleResize = () => setIsMobile(window.innerWidth < 500);
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
