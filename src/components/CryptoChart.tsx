@@ -37,11 +37,22 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
     period: selectedPeriod,
   });
 
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat("ru-RU", {
+  const formatPrice = (price: number) => {
+    // Для очень маленьких цен (< 0.01) показываем больше знаков
+    if (price < 0.01) {
+      // Находим первую значащую цифру и показываем еще 3-4 цифры после неё
+      const decimals = Math.max(4, Math.ceil(-Math.log10(price)) + 3);
+      return new Intl.NumberFormat("ru-RU", {
+        minimumFractionDigits: Math.min(decimals, 10),
+        maximumFractionDigits: Math.min(decimals, 10),
+      }).format(price);
+    }
+    // Для обычных цен используем стандартное форматирование
+    return new Intl.NumberFormat("ru-RU", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(price);
+  };
 
   const formatTooltipDate = (ts: number) => {
     const date = new Date(ts);
@@ -118,9 +129,37 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
 
   if (loading) {
     return (
-      <div className={styles.containerLoader}>
-        <div className={styles.loading}>
-          <div className={styles.spinner} />
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <div className={styles.typeCrypto}>
+            <CryptoPriceDisplay crypto={crypto} currency={currency} />
+          </div>
+
+          <div className={styles.periods}>
+            {ChartService.getSupportedPeriods().map((period) => (
+              <button
+                key={period}
+                className={`${styles.periodButton} ${
+                  selectedPeriod === period ? styles.active : ""
+                }`}
+                onClick={() => setSelectedPeriod(period)}
+              >
+                {ChartService.getPeriodLabel(period)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.chartContainer}>
+          <div className={styles.loading}>
+            <div className={styles.spinner} />
+          </div>
+        </div>
+
+        {/* Placeholder для priceRange чтобы сохранить структуру */}
+        <div className={styles.priceRange}>
+          <div className={styles.priceMin}>Загрузка...</div>
+          <div className={styles.priceMax}></div>
         </div>
       </div>
     );
@@ -128,14 +167,68 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
   if (error) {
     return (
       <div className={styles.container}>
-        <div className={styles.error}>Ошибка загрузки данных: {error}</div>
+        <div className={styles.header}>
+          <div className={styles.typeCrypto}>
+            <CryptoPriceDisplay crypto={crypto} currency={currency} />
+          </div>
+
+          <div className={styles.periods}>
+            {ChartService.getSupportedPeriods().map((period) => (
+              <button
+                key={period}
+                className={`${styles.periodButton} ${
+                  selectedPeriod === period ? styles.active : ""
+                }`}
+                onClick={() => setSelectedPeriod(period)}
+              >
+                {ChartService.getPeriodLabel(period)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.chartContainer}>
+          <div className={styles.error}>Ошибка загрузки данных: {error}</div>
+        </div>
+
+        <div className={styles.priceRange}>
+          <div className={styles.priceMin}>-</div>
+          <div className={styles.priceMax}>-</div>
+        </div>
       </div>
     );
   }
   if (!data || data.length === 0) {
     return (
       <div className={styles.container}>
-        <div className={styles.error}>Нет данных для отображения</div>
+        <div className={styles.header}>
+          <div className={styles.typeCrypto}>
+            <CryptoPriceDisplay crypto={crypto} currency={currency} />
+          </div>
+
+          <div className={styles.periods}>
+            {ChartService.getSupportedPeriods().map((period) => (
+              <button
+                key={period}
+                className={`${styles.periodButton} ${
+                  selectedPeriod === period ? styles.active : ""
+                }`}
+                onClick={() => setSelectedPeriod(period)}
+              >
+                {ChartService.getPeriodLabel(period)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.chartContainer}>
+          <div className={styles.error}>Нет данных для отображения</div>
+        </div>
+
+        <div className={styles.priceRange}>
+          <div className={styles.priceMin}>-</div>
+          <div className={styles.priceMax}>-</div>
+        </div>
       </div>
     );
   }
@@ -148,7 +241,9 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
   const priceRange = maxPrice - minPrice;
 
   const volatility = meanPrice ? priceRange / meanPrice : 0;
-  const isFlatSmallRange = volatility < 0.012 || selectedPeriod === "1d";
+  // Для очень маленьких цен используем менее строгий порог волатильности
+  const volatilityThreshold = meanPrice < 0.01 ? 0.05 : 0.012;
+  const isFlatSmallRange = volatility < volatilityThreshold;
 
   // Δ% считаем ВСЕГДА — чтобы тултип всегда показывал процент
   const firstPrice = prices[0];
@@ -159,15 +254,33 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
 
   // домены для абсолютов
   const paddingBase = priceRange * (isFlatSmallRange ? 0.25 : 0.1);
-  const getDynamicStep = (range: number) => {
+  const getDynamicStep = (range: number, avgPrice: number) => {
+    // Для очень маленьких цен используем адаптивные шаги
+    if (avgPrice < 0.001) {
+      if (range > 0.0001) return 0.00001;
+      if (range > 0.00001) return 0.000001;
+      return 0.0000001;
+    }
+    if (avgPrice < 0.01) {
+      if (range > 0.001) return 0.0001;
+      return 0.00001;
+    }
+    if (avgPrice < 0.1) {
+      if (range > 0.01) return 0.001;
+      return 0.0001;
+    }
+    if (avgPrice < 1) {
+      if (range > 0.1) return 0.01;
+      return 0.001;
+    }
+    // Для обычных цен
     if (range > 10000) return 1000;
     if (range > 5000) return 500;
     if (range > 1000) return 100;
     if (range > 200) return 50;
     return 10;
-    // под свои активы можно подкрутить
   };
-  const step = getDynamicStep(priceRange);
+  const step = getDynamicStep(priceRange, meanPrice);
   const roundDown = (num: number, s: number) => Math.floor(num / s) * s;
   const roundUp = (num: number, s: number) => Math.ceil(num / s) * s;
 
