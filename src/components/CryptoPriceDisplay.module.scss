@@ -49,6 +49,28 @@
   line-height: 1;
 }
 
+.changeLoading {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+}
+
+.spinnerSmall {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid var(--warning-color, #ffc536);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.periodLabel {
+  font-size: 14px;
+  font-weight: 500;
+  margin-left: 4px;
+  color: var(--text-secondary, #666);
+}
+
 .positive {
   color: #1b8;
 }

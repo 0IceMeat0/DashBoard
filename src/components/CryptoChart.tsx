@@ -37,14 +37,22 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
     period: selectedPeriod,
   });
 
+  const selectedPeriodLabel = ChartService.getPeriodLabel(selectedPeriod).toLowerCase();
+
   const formatPrice = (price: number) => {
-    // Для очень маленьких цен (< 0.01) показываем больше знаков
-    if (price < 0.01) {
-      // Находим первую значащую цифру и показываем еще 3-4 цифры после неё
-      const decimals = Math.max(4, Math.ceil(-Math.log10(price)) + 3);
+    if (price === 0) {
       return new Intl.NumberFormat("ru-RU", {
-        minimumFractionDigits: Math.min(decimals, 10),
-        maximumFractionDigits: Math.min(decimals, 10),
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(0);
+    }
+    const absPrice = Math.abs(price);
+    // Для очень маленьких цен (< 0.01) показываем больше знаков без лишних нулей
+    if (absPrice < 0.01) {
+      const decimals = Math.max(4, Math.ceil(-Math.log10(absPrice)) + 2);
+      return new Intl.NumberFormat("ru-RU", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: Math.min(decimals, 6),
       }).format(price);
     }
     // Для обычных цен используем стандартное форматирование
@@ -132,7 +140,15 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
       <div className={styles.container}>
         <div className={styles.header}>
           <div className={styles.typeCrypto}>
-            <CryptoPriceDisplay crypto={crypto} currency={currency} />
+            <CryptoPriceDisplay
+              crypto={crypto}
+              currency={currency}
+              overrideData={{
+                usePeriodChange: true,
+                isLoading: true,
+                periodLabel: selectedPeriodLabel,
+              }}
+            />
           </div>
 
           <div className={styles.periods}>
@@ -252,40 +268,52 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
     priceDeltaPct: firstPrice ? (d.price / firstPrice - 1) * 100 : 0,
   }));
 
-  // домены для абсолютов
-  const paddingBase = priceRange * (isFlatSmallRange ? 0.25 : 0.1);
-  const getDynamicStep = (range: number, avgPrice: number) => {
-    // Для очень маленьких цен используем адаптивные шаги
-    if (avgPrice < 0.001) {
-      if (range > 0.0001) return 0.00001;
-      if (range > 0.00001) return 0.000001;
-      return 0.0000001;
-    }
-    if (avgPrice < 0.01) {
-      if (range > 0.001) return 0.0001;
-      return 0.00001;
-    }
-    if (avgPrice < 0.1) {
-      if (range > 0.01) return 0.001;
-      return 0.0001;
-    }
-    if (avgPrice < 1) {
-      if (range > 0.1) return 0.01;
-      return 0.001;
-    }
-    // Для обычных цен
-    if (range > 10000) return 1000;
-    if (range > 5000) return 500;
-    if (range > 1000) return 100;
-    if (range > 200) return 50;
-    return 10;
-  };
-  const step = getDynamicStep(priceRange, meanPrice);
-  const roundDown = (num: number, s: number) => Math.floor(num / s) * s;
-  const roundUp = (num: number, s: number) => Math.ceil(num / s) * s;
+  const lastPoint = dataAugmented[dataAugmented.length - 1];
+  const currentPrice = lastPoint?.price ?? firstPrice;
+  const periodChangeValue = currentPrice - (firstPrice ?? currentPrice);
+  const periodChangePercent = lastPoint?.priceDeltaPct ?? 0;
+  const lastUpdatedTs = lastPoint?.timestamp;
 
-  const roundedMin = roundDown(minPrice - paddingBase, step);
-  const roundedMax = roundUp(maxPrice + paddingBase, step);
+  // домены для абсолютов
+  const tickTargetCount = selectedPeriod === "1y" ? 6 : 7;
+
+  const getNiceStep = (range: number) => {
+    if (range <= 0 || Number.isNaN(range)) {
+      return 1;
+    }
+    const roughStep = range / Math.max(tickTargetCount - 1, 1);
+    const exponent = Math.floor(Math.log10(roughStep));
+    const fraction = roughStep / Math.pow(10, exponent);
+
+    let niceFraction: number;
+    if (fraction <= 1) niceFraction = 1;
+    else if (fraction <= 2) niceFraction = 2;
+    else if (fraction <= 5) niceFraction = 5;
+    else niceFraction = 10;
+
+    return niceFraction * Math.pow(10, exponent);
+  };
+
+  const effectiveRange = priceRange || Math.max(meanPrice * 0.02, 0.0001);
+  const baseStep = getNiceStep(effectiveRange);
+  const paddingMultiplier = isFlatSmallRange ? 0.4 : 0.2;
+  const paddingBase = Math.max(baseStep, effectiveRange * paddingMultiplier);
+
+  const adjustedMin = minPrice - paddingBase;
+  const adjustedMax = maxPrice + paddingBase;
+
+  const roundedMin = Math.floor(adjustedMin / baseStep) * baseStep;
+  const roundedMax = Math.ceil(adjustedMax / baseStep) * baseStep;
+
+  const adjustedRange = roundedMax - roundedMin;
+  const minRange = baseStep * (tickTargetCount - 1);
+
+  const finalMin = adjustedRange < minRange
+    ? roundedMin - (minRange - adjustedRange) / 2
+    : roundedMin;
+  const finalMax = adjustedRange < minRange
+    ? roundedMax + (minRange - adjustedRange) / 2
+    : roundedMax;
 
   // домены для процентов
   const pctValues = dataAugmented.map((d) => d.priceDeltaPct);
@@ -303,7 +331,17 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.typeCrypto}>
-          <CryptoPriceDisplay crypto={crypto} currency={currency} />
+          <CryptoPriceDisplay
+            crypto={crypto}
+            currency={currency}
+            overrideData={{
+              changeValue: periodChangeValue,
+              changePercent: periodChangePercent,
+              periodLabel: selectedPeriodLabel,
+              lastUpdated: lastUpdatedTs,
+              usePeriodChange: true,
+            }}
+          />
         </div>
 
         <div className={styles.periods}>
@@ -360,7 +398,7 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
                 domain={
                   isFlatSmallRange
                     ? [roundedPctMin, roundedPctMax]
-                    : [roundedMin, roundedMax]
+                    : [finalMin, finalMax]
                 }
                 tickFormatter={(v: number) =>
                   isFlatSmallRange ? `${v.toFixed(1)}%` : formatPrice(v)
@@ -372,7 +410,7 @@ export const CryptoChart = ({ crypto, currency }: CryptoChartProps) => {
                 tickLine={false}
                 axisLine={false}
                 allowDecimals
-                tickCount={6}
+                tickCount={tickTargetCount}
               />
             )}
 
