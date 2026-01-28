@@ -5,6 +5,7 @@ import { useCryptoPrice } from "../hooks/useCryptoPrice";
 import { FIAT_OPTIONS } from "../services/cryptoService";
 import { broadcastCrypto } from "../utils/cryptoBroadcast";
 import { getCookie, setCookie } from "../utils/cookies";
+import { getCryptoIconUrl } from "../utils/cryptoIcons";
 import { CoinSelector } from "./CoinSelector";
 import { CurrencySelector } from "./CurrencySelector";
 import styles from "./Converter.module.scss";
@@ -142,6 +143,17 @@ export function Converter({ initialCrypto }: ConverterProps) {
             >
               {fromIsCrypto ? (
                 <>
+                  {getCryptoIconUrl(crypto) ? (
+                    <img
+                      src={getCryptoIconUrl(crypto)!}
+                      alt=""
+                      className={styles.cryptoIcon}
+                      width={24}
+                      height={24}
+                    />
+                  ) : (
+                    <span className={styles.cryptoIconFallback}>{crypto.charAt(0)}</span>
+                  )}
                   <span className={styles.symbol}>{crypto}</span>
                   <span className={styles.chevron}>▼</span>
                 </>
@@ -168,7 +180,7 @@ export function Converter({ initialCrypto }: ConverterProps) {
             ⇅
           </button>
           {rateLabel && (
-            <span className={styles.rateLabelDesktop} aria-hidden>
+            <span className={styles.rateLabelMobile} aria-hidden>
               {rateLabel}
             </span>
           )}
@@ -191,6 +203,17 @@ export function Converter({ initialCrypto }: ConverterProps) {
             >
               {toIsCrypto ? (
                 <>
+                  {getCryptoIconUrl(crypto) ? (
+                    <img
+                      src={getCryptoIconUrl(crypto)!}
+                      alt=""
+                      className={styles.cryptoIcon}
+                      width={24}
+                      height={24}
+                    />
+                  ) : (
+                    <span className={styles.cryptoIconFallback}>{crypto.charAt(0)}</span>
+                  )}
                   <span className={styles.symbol}>{crypto}</span>
                   <span className={styles.chevron}>▼</span>
                 </>
@@ -227,6 +250,11 @@ export function Converter({ initialCrypto }: ConverterProps) {
         currentCode={fiat}
         rateText={rateLabel}
       />
+       {rateLabel && (
+            <span className={styles.rateLabelDesktop} aria-hidden>
+              {rateLabel}
+            </span>
+          )}
     </div>
   );
 }

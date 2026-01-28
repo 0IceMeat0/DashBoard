@@ -1,7 +1,6 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -92,6 +91,28 @@
   font-weight: 600;
   background: rgba(76, 175, 80, 0.1);
   color: var(--primary-color, #4caf50);
+}
+
+.itemIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.itemIconFallback {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--warning-color, #ffc536);
+  color: var(--foreground, #222);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .itemSymbol {

@@ -6,8 +6,18 @@
   border: 1px solid var(--border-color, #e0e0e0);
   background: var(--background, #ffffff);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+}
+.rateLabelDesktop {
+  display: none;
 }
 
+.rateLabelMobile{
+  font-size: 14px;
+  white-space: nowrap;
+  text-align: center;
+  color: var(--text-secondary, #666);
+}
 .layoutWrap {
   display: flex;
   flex-direction: column;
@@ -109,6 +119,28 @@
   }
 }
 
+.cryptoIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.cryptoIconFallback {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--warning-color, #ffc536);
+  color: var(--foreground, #222);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .symbol {
   font-weight: 600;
 }
@@ -135,6 +167,7 @@
   .card {
     max-width: 720px;
     padding: 20px;
+    text-align: center;
   }
 
   .layoutWrap {
@@ -168,18 +201,23 @@
     flex-direction: column;
     justify-content: center;
     margin: 0;
-    padding: 0 4px;
+    padding-top: 25px;
     flex-shrink: 0;
     gap: 6px;
   }
 
   .rateLabelDesktop {
-    font-size: 12px;
+    display: block;
+    font-size: 14px;
     white-space: nowrap;
     text-align: center;
     color: var(--text-secondary, #666);
+    padding-top: 12px;
   }
-
+  
+  .rateLabelMobile{
+display: none;
+  }
   .swapBtn {
     width: 40px;
     height: 40px;

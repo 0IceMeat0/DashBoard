@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { CryptoService } from "../services/cryptoService";
+import { getCryptoIconUrl } from "../utils/cryptoIcons";
 import styles from "./CoinSelector.module.scss";
 
 interface CoinSelectorProps {
@@ -73,6 +74,17 @@ export function CoinSelector({
                     className={`${styles.item} ${symbol === currentSymbol ? styles.itemActive : ""}`}
                     onClick={() => handleSelect(symbol)}
                   >
+                    {getCryptoIconUrl(symbol) ? (
+                      <img
+                        src={getCryptoIconUrl(symbol)!}
+                        alt=""
+                        className={styles.itemIcon}
+                        width={24}
+                        height={24}
+                      />
+                    ) : (
+                      <span className={styles.itemIconFallback}>{symbol.charAt(0)}</span>
+                    )}
                     <span className={styles.itemSymbol}>{symbol}</span>
                     {symbol === currentSymbol && <span className={styles.check} aria-hidden>✓</span>}
                   </button>
