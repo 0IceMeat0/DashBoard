@@ -1,0 +1,134 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal {
+  background: var(--background, #fff);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 400px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.modalTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  padding: 16px 16px 12px;
+  color: #222;
+}
+
+.searchWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 12px;
+}
+
+.searchIcon {
+  color: var(--text-muted, #757575);
+  font-size: 18px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  font-size: 16px;
+  color: var(--foreground, #222);
+  background: #fff;
+
+  &::placeholder {
+    color: var(--text-muted, #757575);
+  }
+}
+
+.listWrap {
+  flex: 1;
+  min-height: 200px;
+  overflow: auto;
+  padding: 0 16px 16px;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  color: #222;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 8px;
+  font-family: inherit;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+}
+
+.itemActive {
+  font-weight: 600;
+  background: rgba(76, 175, 80, 0.1);
+  color: var(--primary-color, #4caf50);
+}
+
+.itemSymbol {
+  flex: 1;
+  font-weight: 500;
+}
+
+.check {
+  color: var(--primary-color, #4caf50);
+  font-weight: 700;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-color, #e0e0e0);
+  border-top-color: var(--warning-color, #ffc536);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-secondary, #666);
+}
+
