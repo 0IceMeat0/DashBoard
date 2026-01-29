@@ -2,10 +2,12 @@
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 1000;
-  padding: 16px;
+  padding: 12px;
+  overflow: auto;
+  box-sizing: border-box;
 }
 
 .modal {
@@ -14,10 +16,13 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   width: 100%;
   max-width: 400px;
-  max-height: 80vh;
+  max-height: min(80vh, calc(100vh - 24px));
+  min-height: 0;
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border-color, #e0e0e0);
+  flex-shrink: 0;
+  margin: auto 0;
 }
 
 .modalTitle {
@@ -56,9 +61,10 @@
 
 .listWrap {
   flex: 1;
-  min-height: 200px;
+  min-height: 0;
   overflow: auto;
   padding: 0 16px 16px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .list {
