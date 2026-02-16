@@ -293,24 +293,37 @@ export default function BtcHalvingStatusPage() {
     const hasSpaceTop = screenY - tooltipHeight - padding > 0;
     
     // Приоритет: справа > слева > снизу > сверху
+    // Первая точка (2009) — тултип всегда вправо, в сторону графика, чтобы был виден
+    const isFirstPoint = data.year === 2009;
+    const isLastPoint = data.year === LAST_HALVING_YEAR;
+
     let tooltipStyle: React.CSSProperties = {};
-    
-    if (hasSpaceRight) {
-      // Показываем справа
+
+    if (isFirstPoint) {
+      tooltipStyle = {
+        transform: "translateY(-50%)",
+        marginLeft: "10px",
+        marginTop: 0,
+      };
+    } else if (isLastPoint) {
+      tooltipStyle = {
+        transform: "translateX(-100%)",
+        marginLeft: "-10px",
+        marginTop: "-40px",
+      };
+    } else if (hasSpaceRight) {
       tooltipStyle = {
         transform: "translateX(0)",
         marginLeft: "10px",
         marginTop: "-40px",
       };
     } else if (hasSpaceLeft) {
-      // Показываем слева
       tooltipStyle = {
         transform: "translateX(-100%)",
         marginLeft: "-10px",
         marginTop: "-40px",
       };
     } else if (hasSpaceBottom) {
-      // Показываем снизу
       tooltipStyle = {
         transform: "translateX(-50%)",
         marginLeft: "0",
@@ -318,7 +331,6 @@ export default function BtcHalvingStatusPage() {
         left: "50%",
       };
     } else if (hasSpaceTop) {
-      // Показываем сверху
       tooltipStyle = {
         transform: "translateX(-50%)",
         marginLeft: "0",
@@ -326,7 +338,6 @@ export default function BtcHalvingStatusPage() {
         left: "50%",
       };
     } else {
-      // По умолчанию справа
       tooltipStyle = {
         transform: "translateX(0)",
         marginLeft: "10px",

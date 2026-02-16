@@ -5,12 +5,17 @@
   justify-content: center;
   align-items: center;
   background: #ffff;
+  -webkit-tap-highlight-color: transparent;
   @media screen and (max-width: 1000px) {
     width: 121%;
 }
 @media screen and (max-width: 490px) {
     width: 131%;
 }
+}
+
+.container *:focus {
+  outline: none;
 }
 
 .content {
